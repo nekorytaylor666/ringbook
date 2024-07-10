@@ -16,7 +16,7 @@ const queryClient = new QueryClient();
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "http://localhost:8787/trpc",
+      url: "https://backend.ringbook.io/trpc",
       // You can pass any HTTP headers you wish here
     }),
   ],

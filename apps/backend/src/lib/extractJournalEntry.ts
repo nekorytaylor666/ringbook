@@ -16,7 +16,7 @@ import { journalEntries, transactions } from "../db/schema";
 const model = new ChatAnthropic({
   temperature: 0,
   apiKey: process.env.ANTHROPIC_API_KEY,
-  model: process.env.ANTHROPIC_MODEL,
+  model: "claude-3-5-sonnet-20240620",
 });
 export const journalEntrySchema = z.object({
   date: z.string().describe("Date of the transaction (YYYY-MM-DD format)"),
@@ -43,7 +43,7 @@ const journalEntryFixParser = OutputFixingParser.fromLLM(
   new ChatAnthropic({
     temperature: 0,
     apiKey: process.env.ANTHROPIC_API_KEY,
-    model: process.env.ANTHROPIC_MODEL,
+    model: "claude-3-5-sonnet-20240620",
   }),
   journalEntryParser
 );
@@ -52,7 +52,7 @@ const journalEntryChain = RunnableSequence.from([
   new ChatAnthropic({
     temperature: 0,
     apiKey: process.env.ANTHROPIC_API_KEY,
-    model: process.env.ANTHROPIC_MODEL,
+    model: "claude-3-5-sonnet-20240620",
   }),
   journalEntryFixParser,
 ]);
