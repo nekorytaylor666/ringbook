@@ -22,7 +22,14 @@ import {
 import { H4 } from "@/components/ui/typography";
 import { trpc } from "@/lib/trpc";
 import { createFileRoute } from "@tanstack/react-router";
-import { FileSpreadsheet, Heart, MessageCircle, Stamp } from "lucide-react";
+import {
+  FileSpreadsheet,
+  FileText,
+  Heart,
+  Image,
+  MessageCircle,
+  Stamp,
+} from "lucide-react";
 import { useState } from "react";
 import type { TweetWithProfile } from "../../../../../backend/src/db/schema";
 
@@ -85,6 +92,13 @@ function Tweet({ tweet }: TweetProps) {
               {tweet.profile?.name}
             </p>
             <p className="mt-1">{tweet.tweetContent}</p>
+            {tweet.fileUrls && tweet.fileUrls.length > 0 && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {tweet.fileUrls.map((url, index) => (
+                  <FilePreview key={index} url={url} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
         {showTransaction &&
@@ -162,6 +176,35 @@ function Tweet({ tweet }: TweetProps) {
       </CardFooter>
     </Card>
   );
+}
+
+function FilePreview({ url }: { url: string }) {
+  const isImage = url.match(/\.(jpeg|jpg|gif|png)$/i) !== null;
+  const isPDF = url.toLowerCase().endsWith(".pdf");
+
+  if (isImage) {
+    return (
+      <img
+        src={url}
+        alt="Uploaded content"
+        className="w-full object-cover rounded-md"
+      />
+    );
+  } else if (isPDF) {
+    return (
+      <div className="w-full h-32 bg-muted rounded-md flex items-center justify-center">
+        <FileText className="w-8 h-8 text-muted-foreground" />
+        <span className="ml-2 text-sm text-muted-foreground">PDF Document</span>
+      </div>
+    );
+  } else {
+    return (
+      <div className="w-full h-32 bg-muted rounded-md flex items-center justify-center">
+        <FileText className="w-8 h-8 text-muted-foreground" />
+        <span className="ml-2 text-sm text-muted-foreground">File</span>
+      </div>
+    );
+  }
 }
 
 function TransactionTableSkeleton() {
