@@ -9,9 +9,6 @@ import {
 } from "langchain/output_parsers";
 import { z } from "zod";
 
-import { db } from "../db"; // Assuming you have a db connection setup
-import { journalEntries, transactions } from "../db/schema";
-
 // ... existing code ...
 const model = new ChatAnthropic({
   temperature: 0,

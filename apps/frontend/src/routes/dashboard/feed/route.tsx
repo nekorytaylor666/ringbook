@@ -4,10 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Toggle } from "@/components/ui/toggle";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { H4 } from "@/components/ui/typography";
 import { trpc } from "@/lib/trpc";
 import { createFileRoute } from "@tanstack/react-router";
-import { Heart, MessageCircle } from "lucide-react";
+import { FileSpreadsheet, Heart, MessageCircle, Stamp } from "lucide-react";
+import { useState } from "react";
 import type { TweetWithProfile } from "../../../../../backend/src/db/schema";
 
 export const Route = createFileRoute("/dashboard/feed")({
@@ -48,6 +64,14 @@ interface TweetProps {
 }
 
 function Tweet({ tweet }: TweetProps) {
+  const [showTransaction, setShowTransaction] = useState(false);
+  const { data, isLoading } = trpc.getTransactionByTweetId.useQuery(
+    tweet.tweetId,
+    {
+      enabled: showTransaction,
+    },
+  );
+
   return (
     <Card className="border-none">
       <CardContent className="pt-4">
@@ -63,16 +87,95 @@ function Tweet({ tweet }: TweetProps) {
             <p className="mt-1">{tweet.tweetContent}</p>
           </div>
         </div>
+        {showTransaction &&
+          (isLoading ? (
+            <TransactionTableSkeleton />
+          ) : data?.transaction ? (
+            <Table className="mt-4">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[180px]">Account</TableHead>
+                  <TableHead className="text-right">Debit</TableHead>
+                  <TableHead className="text-right">Credit</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.transaction.journalEntries.map((entry) => (
+                  <TableRow key={entry.entryId}>
+                    <TableCell className="font-medium">
+                      {entry.account.name}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {!entry.isCredit ? `$${entry.amount}` : ""}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {entry.isCredit ? `$${entry.amount}` : ""}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="mt-4 text-sm text-muted-foreground">
+              No transaction found for this tweet.
+            </p>
+          ))}
       </CardContent>
       <CardFooter className="flex justify-end space-x-2">
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Heart className="size-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <MessageCircle className="size-4" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Toggle
+                pressed={showTransaction}
+                onPressedChange={setShowTransaction}
+                aria-label="Toggle transaction"
+                className="rounded-full"
+              >
+                <FileSpreadsheet className="size-4" />
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>View journal entry</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Stamp className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Approve</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <MessageCircle className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Reply</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </CardFooter>
     </Card>
+  );
+}
+
+function TransactionTableSkeleton() {
+  return (
+    <div className="mt-4">
+      <Skeleton className="h-8 w-full mb-2" />
+      {[...Array(3)].map((_, index) => (
+        <div key={index} className="flex justify-between mb-2">
+          <Skeleton className="h-6 w-[180px]" />
+          <Skeleton className="h-6 w-20" />
+          <Skeleton className="h-6 w-20" />
+        </div>
+      ))}
+    </div>
   );
 }
 

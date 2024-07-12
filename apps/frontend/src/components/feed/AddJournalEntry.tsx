@@ -34,11 +34,13 @@ export function AddJournalEntry() {
         text: values.entry,
         profileId: data.session.user.id,
         entry: journalEntry,
+        fileUrls: values.fileUrls,
       });
     } else {
       addTweet({
         text: values.entry,
         profileId: data.session.user.id,
+        fileUrls: values.fileUrls,
       });
     }
   }

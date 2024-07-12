@@ -25,13 +25,10 @@ export function useJournalEntryMutation() {
       });
     }
 
-    const response = await fetch(
-      "https://backend.ringbook.io/api/journal/generate",
-      {
-        method: "POST",
-        body: formData,
-      },
-    );
+    const response = await fetch("http://localhost:8787/api/journal/generate", {
+      method: "POST",
+      body: formData,
+    });
 
     if (!response.ok) {
       throw new Error("Failed to submit journal entry");

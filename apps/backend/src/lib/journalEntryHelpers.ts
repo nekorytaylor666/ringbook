@@ -81,7 +81,8 @@ export async function generateJournalEntryFromData(
 export async function insertJournalEntryToDB(
   journalEntry: JournalEntry,
   entry: string,
-  profileId: string
+  profileId: string,
+  fileUrls: string[]
 ) {
   await db.transaction(async (tx) => {
     // Create a tweet
@@ -92,6 +93,7 @@ export async function insertJournalEntryToDB(
         tweetContent: entry,
         tweetDate: new Date(),
         processedStatus: true,
+        fileUrls: fileUrls,
       })
       .returning();
 

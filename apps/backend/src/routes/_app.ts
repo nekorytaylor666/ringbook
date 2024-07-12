@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, dbDirect } from "../db/db.js";
 import { tweets } from "../db/schema.js";
@@ -18,12 +19,32 @@ export const appRouter = router({
 
     return tweets;
   }),
+  getTransactionByTweetId: publicProcedure
+    .input(z.string())
+    .query(async (c) => {
+      const tweet = await db.query.tweets.findFirst({
+        where: eq(tweets.tweetId, c.input),
+        with: {
+          transaction: {
+            with: {
+              journalEntries: {
+                with: {
+                  account: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return tweet;
+    }),
   addTweet: publicProcedure
     .input(
       z.object({
         text: z.string(),
         profileId: z.string(),
         entry: journalEntrySchema.optional(),
+        fileUrls: z.array(z.string()).optional(),
       })
     )
     .mutation(async (c) => {
@@ -31,7 +52,8 @@ export const appRouter = router({
         return await insertJournalEntryToDB(
           c.input.entry,
           c.input.text,
-          c.input.profileId
+          c.input.profileId,
+          c.input.fileUrls || []
         );
       }
       const tweet = await db.insert(tweets).values({
@@ -39,6 +61,7 @@ export const appRouter = router({
         userId: c.input.profileId,
         processedStatus: false,
         tweetContent: c.input.text,
+        fileUrls: c.input.fileUrls || [],
       });
       return tweet;
     }),

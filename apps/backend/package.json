@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "bun run src/index.ts",
+    "dev": "bun run --hot src/index.ts",
     "deploy": "wrangler deploy --minify src/index.ts"
   },
   "dependencies": {
