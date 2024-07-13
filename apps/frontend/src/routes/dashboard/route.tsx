@@ -7,7 +7,7 @@ import {
   redirect,
   useNavigate,
 } from "@tanstack/react-router";
-import { Inbox, LogOut, Torus } from "lucide-react";
+import { Book, Inbox, LogOut, Torus } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   component: Index,
@@ -49,6 +49,25 @@ function Index() {
                 <Inbox className="size-6 " />
                 <span className="absolute left-6 opacity-0 transition-all duration-200 ease-in-out group-hover:ml-2 group-hover:inline group-hover:opacity-100">
                   Feed
+                </span>
+              </div>
+            </Link>
+          </Button>
+          <Button
+            className="w-[36px] justify-start px-1.5 font-mono text-muted-foreground group-hover:w-full"
+            variant="ghost"
+            asChild
+          >
+            <Link
+              to="/dashboard/ledger"
+              activeProps={{
+                className: "bg-accent text-primary",
+              }}
+            >
+              <div className="relative flex items-center gap-2">
+                <Book className="size-6 " />
+                <span className="absolute left-6 opacity-0 transition-all duration-200 ease-in-out group-hover:ml-2 group-hover:inline group-hover:opacity-100">
+                  Ledger
                 </span>
               </div>
             </Link>

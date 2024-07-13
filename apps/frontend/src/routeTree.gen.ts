@@ -16,6 +16,7 @@ import { Route as LoginImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard/route'
 import { Route as DashboardFeedRouteImport } from './routes/dashboard/feed/route'
 import { Route as DashboardEntryRouteImport } from './routes/dashboard/entry/route'
+import { Route as DashboardLedgerIndexImport } from './routes/dashboard/ledger/index'
 
 // Create/Update Routes
 
@@ -41,6 +42,11 @@ const DashboardFeedRouteRoute = DashboardFeedRouteImport.update({
 
 const DashboardEntryRouteRoute = DashboardEntryRouteImport.update({
   path: '/entry',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+
+const DashboardLedgerIndexRoute = DashboardLedgerIndexImport.update({
+  path: '/ledger/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 
@@ -83,6 +89,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFeedRouteImport
       parentRoute: typeof DashboardRouteImport
     }
+    '/dashboard/ledger/': {
+      id: '/dashboard/ledger/'
+      path: '/ledger'
+      fullPath: '/dashboard/ledger'
+      preLoaderRoute: typeof DashboardLedgerIndexImport
+      parentRoute: typeof DashboardRouteImport
+    }
   }
 }
 
@@ -92,6 +105,7 @@ export const routeTree = rootRoute.addChildren({
   DashboardRouteRoute: DashboardRouteRoute.addChildren({
     DashboardEntryRouteRoute,
     DashboardFeedRouteRoute,
+    DashboardLedgerIndexRoute,
   }),
   LoginRoute,
   VerifyOtpRoute,
@@ -114,7 +128,8 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "dashboard/route.tsx",
       "children": [
         "/dashboard/entry",
-        "/dashboard/feed"
+        "/dashboard/feed",
+        "/dashboard/ledger/"
       ]
     },
     "/login": {
@@ -129,6 +144,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/dashboard/feed": {
       "filePath": "dashboard/feed/route.tsx",
+      "parent": "/dashboard"
+    },
+    "/dashboard/ledger/": {
+      "filePath": "dashboard/ledger/index.tsx",
       "parent": "/dashboard"
     }
   }

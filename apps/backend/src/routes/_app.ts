@@ -109,6 +109,18 @@ export const appRouter = router({
     const accounts = await db.query.accounts.findMany();
     return accounts;
   }),
+  getTransactions: publicProcedure.query(async (c) => {
+    const transactions = await db.query.transactions.findMany({
+      with: {
+        journalEntries: {
+          with: {
+            account: true,
+          },
+        },
+      },
+    });
+    return transactions;
+  }),
 });
 
 // Export type router type signature, this is used by the client.

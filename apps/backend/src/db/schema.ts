@@ -145,6 +145,8 @@ export const transactionRelations = relations(
   })
 );
 
+export type Transaction = typeof transactions.$inferSelect;
+
 export const journalEntries = pgTable(
   "journal_entries",
   {
@@ -168,6 +170,8 @@ export const journalEntries = pgTable(
   }
 );
 
+export type JournalEntry = typeof journalEntries.$inferSelect;
+
 // Updated relations
 export const organizationRelations = relations(organizations, ({ many }) => ({
   accounts: many(accounts),
@@ -183,6 +187,14 @@ export const accountRelations = relations(accounts, ({ many, one }) => ({
 }));
 
 export type Account = typeof accounts.$inferSelect;
+
+export type JournalEntryExpanded = JournalEntry & {
+  account: Account;
+};
+
+export type TransactionExpanded = Transaction & {
+  journalEntries: JournalEntryExpanded[];
+};
 
 export const journalEntryRelations = relations(journalEntries, ({ one }) => ({
   transaction: one(transactions, {
