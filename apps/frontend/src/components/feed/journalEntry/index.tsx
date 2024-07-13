@@ -1,5 +1,12 @@
 import { cn, groupBy } from "@/lib/utils";
-import { ArrowBigDown, ArrowBigUp, Check, ChevronsUpDown } from "lucide-react";
+import {
+  ArrowBigDown,
+  ArrowBigUp,
+  Check,
+  ChevronsUpDown,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { Account } from "../../../../../backend/src/db/schema";
@@ -37,7 +44,12 @@ import { useJournalEntryForm } from "./useJournalEntryForm";
 export function JournalEntryModal({
   journalEntry,
   accounts,
-}: { journalEntry: JournalEntry; accounts: Account[] }) {
+  onEntryChange,
+}: {
+  journalEntry: JournalEntry;
+  accounts: Account[];
+  onEntryChange?: (entries: JournalEntry["entries"]) => void;
+}) {
   const {
     formState,
     watch,
@@ -46,16 +58,32 @@ export function JournalEntryModal({
     equation,
     accountsByType,
     unbalancedDifference,
-  } = useJournalEntryForm(journalEntry, accounts);
+  } = useJournalEntryForm(journalEntry, accounts, onEntryChange);
+
+  const addEntry = () => {
+    const currentEntries = watch("journalEntry.entries");
+    setValue("journalEntry.entries", [
+      ...currentEntries,
+      { accountId: "", accountName: "", accountType: "", debit: 0, credit: 0 },
+    ]);
+  };
+
+  const removeEntry = (index: number) => {
+    const currentEntries = watch("journalEntry.entries");
+    setValue(
+      "journalEntry.entries",
+      currentEntries.filter((_, i) => i !== index),
+    );
+  };
+
   return (
-    <Card>
+    <Card className="border-none shadow-none">
       <CardHeader>
         <CardTitle>Journal Entry</CardTitle>
         <CardDescription>{journalEntry.description}</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
-          <TableCaption>Journal Entries</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead>Account</TableHead>
@@ -144,6 +172,9 @@ export function JournalEntryModal({
                       const currentCredit =
                         watch(`journalEntry.entries.${index}.credit`) || 0;
                       const currentValue = currentDebit || currentCredit;
+                      const accountType = watch(
+                        `journalEntry.entries.${index}.accountType`,
+                      );
 
                       if (currentDebit > 0) {
                         setValue(
@@ -163,11 +194,26 @@ export function JournalEntryModal({
                     {watch(`journalEntry.entries.${index}.debit`) > 0
                       ? "Debit"
                       : "Credit"}
-                    {watch(`journalEntry.entries.${index}.debit`) > 0 ? (
-                      <ArrowBigUp className="size-4 ml-1" />
-                    ) : (
-                      <ArrowBigDown className="size-4 ml-1" />
-                    )}
+                    {(() => {
+                      const isDebit =
+                        watch(`journalEntry.entries.${index}.debit`) > 0;
+                      const accountType = watch(
+                        `journalEntry.entries.${index}.accountType`,
+                      );
+                      const isPositive =
+                        (isDebit &&
+                          ["Asset", "Expense"].includes(accountType)) ||
+                        (!isDebit &&
+                          ["Liability", "Equity", "Revenue"].includes(
+                            accountType,
+                          ));
+
+                      return isPositive ? (
+                        <ArrowBigUp className="size-4 ml-1" />
+                      ) : (
+                        <ArrowBigDown className="size-4 ml-1" />
+                      );
+                    })()}
                   </Button>
                 </TableCell>
                 <TableCell>
@@ -181,18 +227,39 @@ export function JournalEntryModal({
                     onChange={(e) => {
                       const value = e.target.value;
                       if (watch(`journalEntry.entries.${index}.debit`) > 0) {
-                        setValue(`journalEntry.entries.${index}.debit`, value);
+                        setValue(
+                          `journalEntry.entries.${index}.debit`,
+                          Number.parseFloat(value),
+                        );
                       } else {
-                        setValue(`journalEntry.entries.${index}.credit`, value);
+                        setValue(
+                          `journalEntry.entries.${index}.credit`,
+                          Number.parseFloat(value),
+                        );
                       }
                     }}
                     className="w-full"
                   />
                 </TableCell>
+                <TableCell>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeEntry(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        <div className="flex justify-end mt-2">
+          <Button type="button" variant="outline" size="sm" onClick={addEntry}>
+            <Plus className="h-4 w-4 mr-2" /> Add Entry
+          </Button>
+        </div>
         <div className="mt-4">
           <p
             className={`text-${isBalanced ? "green" : "red"}-600 font-semibold`}

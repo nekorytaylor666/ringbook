@@ -1,5 +1,5 @@
 import { groupBy } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { Account } from "../../../../../backend/src/db/schema";
 import type { JournalEntry } from "../../../../../backend/src/lib/extractJournalEntry";
@@ -7,6 +7,7 @@ import type { JournalEntry } from "../../../../../backend/src/lib/extractJournal
 export function useJournalEntryForm(
   journalEntry: JournalEntry,
   accounts: Account[],
+  onEntryChange?: (entries: JournalEntry["entries"]) => void,
 ) {
   const { formState, register, setValue, watch, getValues, reset } = useForm({
     defaultValues: { journalEntry },
@@ -55,6 +56,7 @@ export function useJournalEntryForm(
       newEquation.assets - (newEquation.liabilities + newEquation.equity);
     setUnbalancedDifference(difference);
     setIsBalanced(Math.abs(difference) < 0.001);
+    onEntryChange?.(getValues("journalEntry.entries"));
   }, [JSON.stringify(allFields)]);
 
   return {

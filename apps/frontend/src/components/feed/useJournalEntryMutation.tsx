@@ -4,9 +4,13 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { JournalEntry } from "../../../../backend/src/lib/extractJournalEntry";
-import type { FormValues } from "./AddJournalForm";
+import type { FormValues } from "./AddJournalEntry";
 
-export function useJournalEntryMutation() {
+export function useJournalEntryMutation({
+  onSuccess,
+}: {
+  onSuccess: (journalEntry: JournalEntry) => void;
+}) {
   const [journalEntry, setJournalEntry] = useState<JournalEntry | null>(null);
 
   const mutation = async (values: FormValues) => {
@@ -45,6 +49,7 @@ export function useJournalEntryMutation() {
   const { mutate, isLoading } = useMutation(mutation, {
     onSuccess: (data) => {
       setJournalEntry(data.journalEntry);
+      onSuccess(data.journalEntry);
       toast.success("Journal entry submitted successfully");
     },
     onError: (error) => {
