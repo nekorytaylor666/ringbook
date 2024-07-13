@@ -11,9 +11,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+import { trpc } from "@/lib/trpc";
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
   component: LoginForm,
@@ -27,15 +29,38 @@ export function LoginForm() {
   } = useForm();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const utils = trpc.useUtils();
   async function sendOTP(email: string) {
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        // set this to false if you do not want the user to be automatically signed up
-        shouldCreateUser: false,
-      },
-    });
-    console.log(data);
+    const user = await utils.emailExists.fetch(email);
+    // First, check if the user exists
+    if (!user) {
+      // If user doesn't exist, create a new user
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true, // We've handled user creation manually
+        },
+      });
+      if (error) {
+        console.error("Error sending OTP:", error);
+      } else {
+        console.log("OTP sent successfully:", data);
+        toast.success("OTP sent successfully");
+      }
+    } else {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false, // We've handled user creation manually
+        },
+      });
+      if (error) {
+        console.error("Error sending OTP:", error);
+      } else {
+        console.log("OTP sent successfully:", data);
+        toast.success("OTP sent successfully");
+      }
+    }
   }
   const onSubmit = async (values: any) => {
     setIsLoading(true);

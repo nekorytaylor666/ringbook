@@ -1,4 +1,5 @@
 import { cn, groupBy } from "@/lib/utils";
+import { format } from "date-fns";
 import {
   ArrowBigDown,
   ArrowBigUp,
@@ -7,11 +8,13 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { Account } from "../../../../../backend/src/db/schema";
 import type { JournalEntry } from "../../../../../backend/src/lib/extractJournalEntry";
 import { Button } from "../../ui/button";
+import { Calendar } from "../../ui/calendar";
 import {
   Card,
   CardContent,
@@ -45,10 +48,12 @@ export function JournalEntryModal({
   journalEntry,
   accounts,
   onEntryChange,
+  onDateChange,
 }: {
   journalEntry: JournalEntry;
   accounts: Account[];
   onEntryChange?: (entries: JournalEntry["entries"]) => void;
+  onDateChange?: (date: Date) => void;
 }) {
   const {
     formState,
@@ -59,6 +64,10 @@ export function JournalEntryModal({
     accountsByType,
     unbalancedDifference,
   } = useJournalEntryForm(journalEntry, accounts, onEntryChange);
+
+  const [date, setDate] = useState<Date | undefined>(
+    journalEntry.date ? new Date(journalEntry.date) : undefined,
+  );
 
   const addEntry = () => {
     const currentEntries = watch("journalEntry.entries");
@@ -83,6 +92,39 @@ export function JournalEntryModal({
         <CardDescription>{journalEntry.description}</CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Transaction Date
+          </label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant={"outline"}
+                className={cn(
+                  "w-[280px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground",
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(newDate) => {
+                  setDate(newDate);
+                  onDateChange?.(newDate);
+                  setValue("journalEntry.date", newDate);
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
         <Table>
           <TableHeader>
             <TableRow>

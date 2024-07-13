@@ -105,7 +105,7 @@ export async function insertJournalEntryToDB(
       .values({
         organizationId: 1, // You'll need to provide this
         description: journalEntry.description,
-        date: sql`now()`,
+        date: journalEntry.date.toString(),
         tweetId: tweetId,
         isApproved: false,
       })

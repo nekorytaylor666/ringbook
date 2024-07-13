@@ -16,7 +16,11 @@ const model = new ChatAnthropic({
   model: "claude-3-5-sonnet-20240620",
 });
 export const journalEntrySchema = z.object({
-  date: z.string().describe("Date of the transaction (YYYY-MM-DD format)"),
+  date: z
+    .string()
+    .describe(
+      "Date of the transaction (YYYY-MM-DD format). If not provided, use the current date."
+    ),
   description: z.string().describe("Brief description of the transaction"),
   entries: z.array(
     z.object({
@@ -66,7 +70,7 @@ export async function generateJournalEntry(
     [
       "system",
       `You are an AI assistant tasked with generating journal entries in JSON format for accounting purposes. You will be provided with an accounts structure and a transaction description. Your goal is to create a valid journal entry based on the given information.
-
+Current date: {current_date}
 First, here is the accounts structure you will be working with:
 
 <accounts_json>
@@ -116,6 +120,7 @@ Return only JSON. Make sure its valid JSON. It will be parsed by another script 
     const element = pdfs[index];
     context[`pdf${index}`] = element;
   }
+  context["current_date"] = new Date().toISOString();
   console.log(context);
   const response = await chain.invoke(context);
   return response;

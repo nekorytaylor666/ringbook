@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, dbDirect } from "../db/db.js";
-import { tweets } from "../db/schema.js";
+import { profile, tweets } from "../db/schema.js";
 import {
   generateJournalEntry,
   journalEntrySchema,
@@ -48,6 +48,7 @@ export const appRouter = router({
       })
     )
     .mutation(async (c) => {
+      console.log(c.input);
       if (c.input.entry) {
         return await insertJournalEntryToDB(
           c.input.entry,
@@ -56,13 +57,16 @@ export const appRouter = router({
           c.input.fileUrls || []
         );
       }
-      const tweet = await db.insert(tweets).values({
-        tweetDate: new Date(),
-        userId: c.input.profileId,
-        processedStatus: false,
-        tweetContent: c.input.text,
-        fileUrls: c.input.fileUrls || [],
-      });
+      const tweet = await db
+        .insert(tweets)
+        .values({
+          tweetDate: new Date(),
+          userId: c.input.profileId,
+          processedStatus: false,
+          tweetContent: c.input.text,
+          fileUrls: c.input.fileUrls || [],
+        })
+        .returning();
       return tweet;
     }),
   generateJournalEntry: publicProcedure
@@ -120,6 +124,12 @@ export const appRouter = router({
       },
     });
     return transactions;
+  }),
+  emailExists: publicProcedure.input(z.string()).query(async (c) => {
+    const user = await db.query.profile.findFirst({
+      where: eq(profile.email, c.input),
+    });
+    return user;
   }),
 });
 
